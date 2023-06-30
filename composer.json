@@ -1,0 +1,13 @@
+{
+  "name": "pixlmint/pixlcms-wiki-plugin",
+  "description": "The official wiki plugin for PixlCMS",
+  "require": {
+    "ext-json":  "*",
+    "pixlmint/pixl-cms": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "PixlMint\\WikiPlugin\\": "src/"
+    }
+  }
+}
