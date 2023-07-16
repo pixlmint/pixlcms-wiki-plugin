@@ -52,7 +52,7 @@ class NavRenderer
                 'url' => $url,
                 'children' => $childrenOutput,
                 'isFolder' => str_ends_with($page->file, 'index.md'),
-                'isPublic' => $isPublic ? 'true' : 'false',
+                'isPublic' => $isPublic,
             ];
         }
         return $ret;
