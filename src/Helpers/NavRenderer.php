@@ -2,6 +2,7 @@
 
 namespace PixlMint\WikiPlugin\Helpers;
 
+use Nacho\Helpers\PageSecurityHelper;
 use Nacho\Models\PicoPage;
 use Nacho\Nacho;
 
@@ -43,6 +44,7 @@ class NavRenderer
 
             $url = $page->url ?? false;
             $title = $page->meta->title;
+            $isPublic = PageSecurityHelper::isPagePublic($page);
 
             $ret[] = [
                 'id' => $page->id,
@@ -50,6 +52,7 @@ class NavRenderer
                 'url' => $url,
                 'children' => $childrenOutput,
                 'isFolder' => str_ends_with($page->file, 'index.md'),
+                'isPublic' => $isPublic,
             ];
         }
         return $ret;
