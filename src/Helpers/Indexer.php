@@ -12,7 +12,7 @@ class Indexer
 {
     private array $index = [];
 
-    public function indexDb(Nacho $nacho): void
+    public function indexDb(Nacho $nacho): float
     {
         $pages = $nacho->getMarkdownHelper()->getPages();
         $timer = Stopwatch::startNew();
@@ -27,6 +27,8 @@ class Indexer
 
         $index = new Index($indexTime, $this->index);
         RepositoryManager::getInstance()->getRepository(IndexRepository::class)->set($index);
+
+        return $indexTime;
     }
 
     private function indexString(string $str, string $pageId, int $weight): void
