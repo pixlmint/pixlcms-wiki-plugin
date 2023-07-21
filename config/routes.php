@@ -5,6 +5,7 @@ use PixlMint\JournalPlugin\Controllers\CacheController;
 use PixlMint\JournalPlugin\Controllers\EntriesController;
 use PixlMint\WikiPlugin\Controllers\IndexingController;
 use PixlMint\WikiPlugin\Controllers\NavController;
+use PixlMint\WikiPlugin\Controllers\SearchController;
 
 return [
     [
@@ -16,5 +17,10 @@ return [
         'route' => '/api/index',
         'controller' => IndexingController::class,
         'function' => 'index',
+    ],
+    [
+        'route' => '/api/search',
+        'controller' => SearchController::class,
+        'function' => 'search',
     ],
 ];

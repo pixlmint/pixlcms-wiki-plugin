@@ -10,8 +10,8 @@ class IndexingController extends AbstractController
     public function index(): string
     {
         $indexer = new Indexer();
-        $index = $indexer->indexDb($this->nacho);
+        $indexer->indexDb($this->nacho);
 
-        return $this->json($index);
+        return $this->json(['message' => 'success']);
     }
 }

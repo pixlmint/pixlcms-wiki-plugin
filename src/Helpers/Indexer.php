@@ -3,41 +3,52 @@
 namespace PixlMint\WikiPlugin\Helpers;
 
 use Nacho\Nacho;
+use Nacho\ORM\RepositoryManager;
+use PixlMint\CMS\Helpers\Stopwatch;
+use PixlMint\WikiPlugin\Model\Index;
+use PixlMint\WikiPlugin\Repository\IndexRepository;
 
 class Indexer
 {
-    public function indexDb(Nacho $nacho): array
+    private array $index = [];
+
+    public function indexDb(Nacho $nacho): void
     {
-        $index = [];
         $pages = $nacho->getMarkdownHelper()->getPages();
+        $timer = Stopwatch::startNew();
         foreach ($pages as $page) {
-            $content = $page->raw_content;
+            $content = strtolower($page->raw_content);
+            $title = strtolower($page->meta->title);
 
-            // Break content into words.
-            $words = preg_split('/\s+/', $content);
+            $this->indexString($content, $page->id, 1);
+            $this->indexString($title, $page->id, 10);
+        }
+        $indexTime = $timer->stop();
 
-            foreach ($words as $word) {
-                // Lowercase the word so the index is case-insensitive.
-                $word = strtolower($word);
+        $index = new Index($indexTime, $this->index);
+        RepositoryManager::getInstance()->getRepository(IndexRepository::class)->set($index);
+    }
 
-                // Skip if it's a stop word.
-                if (in_array($word, self::getStopWords())) {
-                    continue;
+    private function indexString(string $str, string $pageId, int $weight): void
+    {
+        $str = preg_replace("/\W+/", " ", $str);
+        $words = preg_split('/\s+/', $str);
+        foreach ($words as $word) {
+            if (!in_array($word, self::getStopWords())) {
+                if (!key_exists($word, $this->index)) {
+                    $this->index[$word] = [];
                 }
-
-                // Initialize the word in the index if not already present.
-                if (!isset($index[$word])) {
-                    $index[$word] = [];
-                }
-
-                // Add this file to the list of files for this word.
-                if (!in_array($page->id, $index[$word])) {
-                    $index[$word][] = ['id' => $page->id, 'title' => $page->meta->title];
+                $alreadyInArray = array_filter($this->index[$word], function($arr) use($pageId) {
+                    return $pageId === $arr['pageId'];
+                });
+                $i = array_search($alreadyInArray, $this->index[$word]);
+                if ($i) {
+                    $this->index[$word][$i]['weight'] += $weight;
+                } else {
+                    $this->index[$word][] = ["pageId" => $pageId, "weight" => $weight];
                 }
             }
         }
-
-        return $index;
     }
 
     private static function getStopWords(): array
