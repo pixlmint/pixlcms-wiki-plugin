@@ -29,8 +29,8 @@ class NavRenderer
     public function loadNav(?array $pages = null): array
     {
         if (!$pages) {
-            $tmp = $this->nacho->getMarkdownHelper()->getPages();
-            $page = $this->nacho->getMarkdownHelper()->getPage('/');
+            $tmp = $this->nacho->getPageManager()->getPages();
+            $page = $this->nacho->getPageManager()->getPage('/');
             $pages = ['/' => $this->findChildPages('/', $page, $tmp)];
         }
         $ret = [];

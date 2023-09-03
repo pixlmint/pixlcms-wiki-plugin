@@ -14,7 +14,7 @@ class Indexer
 
     public function indexDb(Nacho $nacho): float
     {
-        $pages = $nacho->getMarkdownHelper()->getPages();
+        $pages = $nacho->getPageManager()->getPages();
         $timer = Stopwatch::startNew();
         foreach ($pages as $page) {
             $content = strtolower($page->raw_content);
