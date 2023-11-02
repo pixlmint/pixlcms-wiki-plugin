@@ -3,11 +3,12 @@
 namespace PixlMint\WikiPlugin\Controllers;
 
 use Nacho\Controllers\AbstractController;
+use Nacho\Models\HttpResponse;
 use PixlMint\WikiPlugin\Helpers\Indexer;
 
 class IndexingController extends AbstractController
 {
-    public function index(): string
+    public function index(): HttpResponse
     {
         $indexer = new Indexer();
         $indexTime = $indexer->indexDb($this->nacho);
