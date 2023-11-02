@@ -109,16 +109,16 @@
         },
         {
             "name": "pixlmint/pixl-cms",
-            "version": "1.9.1",
+            "version": "1.9.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/pixlmint/pixl-cms.git",
-                "reference": "24825bc07270310e41889ca0712042b7292f8e1b"
+                "reference": "98440e460f25158b815b542d48e335c887a5e2ce"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pixlmint/pixl-cms/zipball/24825bc07270310e41889ca0712042b7292f8e1b",
-                "reference": "24825bc07270310e41889ca0712042b7292f8e1b",
+                "url": "https://api.github.com/repos/pixlmint/pixl-cms/zipball/98440e460f25158b815b542d48e335c887a5e2ce",
+                "reference": "98440e460f25158b815b542d48e335c887a5e2ce",
                 "shasum": ""
             },
             "require": {
@@ -136,9 +136,9 @@
             "description": "A lightweight CMS powered by Markdown and Nachos",
             "support": {
                 "issues": "https://github.com/pixlmint/pixl-cms/issues",
-                "source": "https://github.com/pixlmint/pixl-cms/tree/1.9.1"
+                "source": "https://github.com/pixlmint/pixl-cms/tree/1.9.2"
             },
-            "time": "2023-11-02T11:31:36+00:00"
+            "time": "2023-11-02T11:37:39+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
