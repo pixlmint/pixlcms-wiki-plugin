@@ -2,23 +2,29 @@
 
 namespace PixlMint\WikiPlugin\Helpers;
 
-use Nacho\Exceptions\ConfigurationDoesNotExistException;
+use Nacho\Exceptions\ConfigurationValueDoesNotExistException;
 use Nacho\Helpers\ConfigurationContainer;
 
 class WikiConfiguration
 {
-    public static function version(): string
+    private ConfigurationContainer $configuration;
+
+    public function __construct(ConfigurationContainer $configuration)
     {
-        return self::getJournalConfig('version');
+        $this->configuration = $configuration;
     }
 
-    private static function getJournalConfig(string $configName): mixed
+    public function version(): string
     {
-        $helper = ConfigurationContainer::getInstance();
-        $config = $helper->getCustomConfig('wiki');
+        return $this->getJournalConfig('version');
+    }
+
+    private function getJournalConfig(string $configName): mixed
+    {
+        $config = $this->configuration->getCustomConfig('wiki');
 
         if (!key_exists($configName, $config)) {
-            throw new ConfigurationDoesNotExistException("${configName} does not exist in journal configuration");
+            throw new ConfigurationValueDoesNotExistException($configName, 'wiki');
         }
 
         return $config[$configName];
