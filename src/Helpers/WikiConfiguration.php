@@ -3,7 +3,7 @@
 namespace PixlMint\WikiPlugin\Helpers;
 
 use Nacho\Exceptions\ConfigurationDoesNotExistException;
-use Nacho\Helpers\ConfigurationHelper;
+use Nacho\Helpers\ConfigurationContainer;
 
 class WikiConfiguration
 {
@@ -14,7 +14,7 @@ class WikiConfiguration
 
     private static function getJournalConfig(string $configName): mixed
     {
-        $helper = ConfigurationHelper::getInstance();
+        $helper = ConfigurationContainer::getInstance();
         $config = $helper->getCustomConfig('wiki');
 
         if (!key_exists($configName, $config)) {
