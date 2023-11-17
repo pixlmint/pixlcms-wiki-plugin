@@ -6,7 +6,7 @@ use Nacho\ORM\AbstractRepository;
 use Nacho\ORM\RepositoryInterface;
 use PixlMint\WikiPlugin\Model\Index;
 
-class IndexRepository extends AbstractRepository implements RepositoryInterface
+class IndexRepository extends AbstractRepository
 {
     public static function getDataName(): string
     {

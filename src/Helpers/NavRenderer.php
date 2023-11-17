@@ -2,17 +2,20 @@
 
 namespace PixlMint\WikiPlugin\Helpers;
 
+use Nacho\Contracts\PageManagerInterface;
+use Nacho\Contracts\UserHandlerInterface;
 use Nacho\Helpers\PageSecurityHelper;
 use Nacho\Models\PicoPage;
-use Nacho\Nacho;
 
 class NavRenderer
 {
-    private Nacho $nacho;
+    private PageManagerInterface $pageManager;
+    private UserHandlerInterface $userHandler;
 
-    public function __construct(Nacho $nacho)
+    public function __construct(PageManagerInterface $pageManager, UserHandlerInterface $userHandler)
     {
-        $this->nacho = $nacho;
+        $this->pageManager = $pageManager;
+        $this->userHandler = $userHandler;
     }
 
     /**
@@ -29,8 +32,8 @@ class NavRenderer
     public function loadNav(?array $pages = null): array
     {
         if (!$pages) {
-            $tmp = $this->nacho->getPageManager()->getPages();
-            $page = $this->nacho->getPageManager()->getPage('/');
+            $tmp = $this->pageManager->getPages();
+            $page = $this->pageManager->getPage('/');
             $pages = ['/' => $this->findChildPages('/', $page, $tmp)];
         }
         $ret = [];
@@ -78,7 +81,7 @@ class NavRenderer
     {
         foreach ($pages as $childId => $page) {
             if (isset($page->meta->min_role)) {
-                if (!$this->nacho->getUserHandler()->isGranted($page->meta->min_role)) {
+                if (!$this->userHandler->isGranted($page->meta->min_role)) {
                     continue;
                 }
             }

@@ -2,8 +2,7 @@
 
 namespace PixlMint\WikiPlugin\Helpers;
 
-use Nacho\Nacho;
-use Nacho\ORM\RepositoryManager;
+use Nacho\Contracts\PageManagerInterface;
 use PixlMint\CMS\Helpers\Stopwatch;
 use PixlMint\WikiPlugin\Model\Index;
 use PixlMint\WikiPlugin\Repository\IndexRepository;
@@ -11,10 +10,18 @@ use PixlMint\WikiPlugin\Repository\IndexRepository;
 class Indexer
 {
     private array $index = [];
+    private PageManagerInterface $pageManager;
+    private IndexRepository $indexRepository;
 
-    public function indexDb(Nacho $nacho): float
+    public function __construct(PageManagerInterface $pageManager, IndexRepository $indexRepository)
     {
-        $pages = $nacho->getPageManager()->getPages();
+        $this->pageManager = $pageManager;
+        $this->indexRepository = $indexRepository;
+    }
+
+    public function indexDb(): float
+    {
+        $pages = $this->pageManager->getPages();
         $timer = Stopwatch::startNew();
         foreach ($pages as $page) {
             $content = strtolower($page->raw_content);
@@ -26,7 +33,7 @@ class Indexer
         $indexTime = $timer->stop();
 
         $index = new Index($indexTime, $this->index);
-        RepositoryManager::getInstance()->getRepository(IndexRepository::class)->set($index);
+        $this->indexRepository->set($index);
 
         return $indexTime;
     }
@@ -40,7 +47,7 @@ class Indexer
                 if (!key_exists($word, $this->index)) {
                     $this->index[$word] = [];
                 }
-                $alreadyInArray = array_filter($this->index[$word], function($arr) use($pageId) {
+                $alreadyInArray = array_filter($this->index[$word], function ($arr) use ($pageId) {
                     return $pageId === $arr['pageId'];
                 });
                 $i = array_search($alreadyInArray, $this->index[$word]);

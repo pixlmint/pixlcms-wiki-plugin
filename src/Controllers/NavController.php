@@ -8,10 +8,8 @@ use PixlMint\WikiPlugin\Helpers\NavRenderer;
 
 class NavController extends AbstractController
 {
-    public function loadNav(): HttpResponse
+    public function loadNav(NavRenderer $navRenderer): HttpResponse
     {
-        $navRenderer = new NavRenderer($this->nacho);
-
         return $this->json($navRenderer->loadNav());
     }
 }

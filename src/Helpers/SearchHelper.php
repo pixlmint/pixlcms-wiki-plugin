@@ -9,9 +9,11 @@ use PixlMint\WikiPlugin\Repository\IndexRepository;
 class SearchHelper
 {
     private array $index = [];
+    private IndexRepository $indexRepository;
 
-    public function __construct()
+    public function __construct(IndexRepository $indexRepository)
     {
+        $this->indexRepository = $indexRepository;
         $this->index = $this->getIndex();
     }
 
@@ -46,7 +48,7 @@ class SearchHelper
     {
         if (!$this->index) {
             /** @var Index $index */
-            $index = RepositoryManager::getInstance()->getRepository(IndexRepository::class)->getById(1);
+            $index = $this->indexRepository->getById(1);
 
             if (!$index) {
                 throw new \Exception('Index is not built');

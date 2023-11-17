@@ -8,10 +8,9 @@ use PixlMint\WikiPlugin\Helpers\Indexer;
 
 class IndexingController extends AbstractController
 {
-    public function index(): HttpResponse
+    public function index(Indexer $indexer): HttpResponse
     {
-        $indexer = new Indexer();
-        $indexTime = $indexer->indexDb($this->nacho);
+        $indexTime = $indexer->indexDb();
 
         return $this->json(['message' => 'success', 'indexTime' => $indexTime]);
     }
