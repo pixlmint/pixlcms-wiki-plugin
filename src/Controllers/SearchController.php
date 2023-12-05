@@ -9,10 +9,8 @@ use PixlMint\WikiPlugin\Helpers\SearchHelper;
 
 class SearchController extends AbstractController
 {
-    public function search(RequestInterface $request): HttpResponse
+    public function search(RequestInterface $request, SearchHelper $searchHelper): HttpResponse
     {
-        $searchHelper = new SearchHelper();
-
         $query = $request->getBody()['q'];
 
         $result = $searchHelper->search($query);
