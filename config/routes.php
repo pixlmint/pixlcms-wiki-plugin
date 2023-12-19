@@ -6,6 +6,7 @@ use PixlMint\JournalPlugin\Controllers\EntriesController;
 use PixlMint\WikiPlugin\Controllers\IndexingController;
 use PixlMint\WikiPlugin\Controllers\NavController;
 use PixlMint\WikiPlugin\Controllers\SearchController;
+use PixlMint\WikiPlugin\Controllers\SvgController;
 
 return [
     [
@@ -22,5 +23,10 @@ return [
         'route' => '/api/search',
         'controller' => SearchController::class,
         'function' => 'search',
+    ],
+    [
+        'route' => '/api/admin/svg/store-data',
+        'controller' => SvgController::class,
+        'function' => 'storeSvgData',
     ],
 ];
