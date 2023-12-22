@@ -3,11 +3,16 @@
   "description": "The official wiki plugin for PixlCMS",
   "require": {
     "ext-json":  "*",
+    "ext-zlib":  "*",
     "pixlmint/pixl-cms": "*"
   },
   "autoload": {
     "psr-4": {
-      "PixlMint\\WikiPlugin\\": "src/"
+      "PixlMint\\WikiPlugin\\": "src/",
+      "PixlMint\\WikiPlugin\\Tests\\": "tests/"
     }
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.3"
   }
 }
