@@ -56,6 +56,7 @@ class NavRenderer
                 'children' => $childrenOutput,
                 'isFolder' => str_ends_with($page->file, 'index.md'),
                 'isPublic' => $isPublic,
+                'kind' => $page->meta->kind ?? 'plain',
             ];
         }
         return $ret;
