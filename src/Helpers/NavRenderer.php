@@ -4,6 +4,7 @@ namespace PixlMint\WikiPlugin\Helpers;
 
 use Nacho\Contracts\PageManagerInterface;
 use Nacho\Contracts\UserHandlerInterface;
+use Nacho\Helpers\PageManager;
 use Nacho\Helpers\PageSecurityHelper;
 use Nacho\Models\PicoPage;
 
@@ -16,6 +17,7 @@ class NavRenderer
     {
         $this->pageManager = $pageManager;
         $this->userHandler = $userHandler;
+        PageManager::$INCLUDE_PAGE_TREE = true;
     }
 
     /**
@@ -32,9 +34,7 @@ class NavRenderer
     public function loadNav(?array $pages = null): array
     {
         if (!$pages) {
-            $tmp = $this->pageManager->getPages();
-            $page = $this->pageManager->getPage('/');
-            $pages = ['/' => $this->findChildPages('/', $page, $tmp)];
+            $pages = $this->pageManager->getPageTree();
         }
         $ret = [];
         foreach ($pages as $pageID => $page) {
