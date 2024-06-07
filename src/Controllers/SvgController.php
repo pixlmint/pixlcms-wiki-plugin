@@ -24,11 +24,11 @@ class SvgController extends AbstractController
         if (strtolower($request->requestMethod) !== 'post') {
             return $this->json(['message' => 'invalid request method', HttpResponseCode::METHOD_NOT_ALLOWED]);
         }
-        if (!key_exists('drawing', $request->getBody()) && !key_exists('drawing', $request->getBody())) {
+        if (!$request->getBody()->has('drawing') && !$request->getBody()->has('drawing')) {
             return $this->json(['message' => 'Svg data drawing argument not supplied'], HttpResponseCode::BAD_REQUEST);
         }
 
-        $drawing = $request->getBody()['drawing'];
+        $drawing = $request->getBody()->get('drawing');
         if (Utils::isJson($drawing)) {
             $drawing = json_decode($drawing, true);
         }

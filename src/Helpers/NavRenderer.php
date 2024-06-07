@@ -7,42 +7,61 @@ use Nacho\Contracts\UserHandlerInterface;
 use Nacho\Helpers\PageManager;
 use Nacho\Helpers\PageSecurityHelper;
 use Nacho\Models\PicoPage;
+use PixlMint\WikiPlugin\Model\NavCache;
+use PixlMint\WikiPlugin\Repository\NavCacheRepository;
+use Psr\Log\LoggerInterface;
 
 class NavRenderer
 {
     private PageManagerInterface $pageManager;
-    private UserHandlerInterface $userHandler;
+    private NavCacheRepository $navCacheRepository;
+    private LoggerInterface $logger;
 
-    public function __construct(PageManagerInterface $pageManager, UserHandlerInterface $userHandler)
+    public function __construct(PageManagerInterface $pageManager, NavCacheRepository $navCacheRepository, LoggerInterface $logger)
     {
         $this->pageManager = $pageManager;
-        $this->userHandler = $userHandler;
-        PageManager::$INCLUDE_PAGE_TREE = true;
-    }
-
-    /**
-     * Return if the given path is a subpath of the given parent path(s)
-     */
-    public static function isSubPath(string $path, string $parentPath)
-    {
-        return str_starts_with($path, $parentPath) && $path !== $parentPath;
+        $this->navCacheRepository = $navCacheRepository;
+        $this->logger = $logger;
     }
 
     /**
      * Return an array based on a nested pages array.
      */
-    public function loadNav(?array $pages = null): array
+    public function loadNav(?array $pages = [], bool $rerender = false): array
     {
-        if (!$pages) {
-            $pages = $this->pageManager->getPageTree();
+        if ($rerender) {
+            $this->logger->info('Rerendering nav');
+            if (!$pages) {
+                $originalPageTreeSetting = PageManager::$INCLUDE_PAGE_TREE;
+                PageManager::$INCLUDE_PAGE_TREE = true;
+                $this->pageManager->readPages();
+                $pages = $this->pageManager->getPageTree();
+                PageManager::$INCLUDE_PAGE_TREE = $originalPageTreeSetting;
+            }
+            $loadedNav = $this->loadNavFromPages($pages);
+            $this->cacheLoadedNav($loadedNav);
+            return $loadedNav;
+        } else {
+            $cachedNav = $this->getNavCache();
+            if (!$cachedNav->getNav()) {
+                $this->logger->info('Nav is empty, rerendering');
+                return $this->loadNav([], true);
+            } else {
+                $this->logger->info('Found cached nav');
+                return $cachedNav->getNav();
+            }
         }
+    }
+
+    private function loadNavFromPages(array $pages): array
+    {
         $ret = [];
         foreach ($pages as $pageID => $page) {
             if (!empty($page->hidden)) continue;
 
             $childrenOutput = [];
             if (isset($page->children)) {
-                $childrenOutput = $this->loadNav($page->children);
+                $childrenOutput = $this->loadNav($page->children, true);
             }
 
             $url = $page->url ?? false;
@@ -62,36 +81,21 @@ class NavRenderer
         return $ret;
     }
 
-    private static function isDirectChild(string $path, string $parentPath): bool
+    private function getNavCache(): NavCache
     {
-        if (!self::isSubPath($path, $parentPath)) {
-            return false;
+        $navCache = $this->navCacheRepository->getById(1);
+        if (!($navCache instanceof NavCache)) {
+            $navCache = new NavCache([]);
+            $navCache->setId(1);
+            $this->navCacheRepository->set($navCache);
         }
-
-        if ($parentPath === '/') {
-            if (count(explode('/', $path)) === 2) {
-                return true;
-            }
-            return false;
-        }
-
-        return count(explode('/', $path)) - 1 === count(explode('/', $parentPath));
+        return $navCache;
     }
 
-    public function findChildPages(string $id, PicoPage &$parentPage, array $pages): PicoPage
+    private function cacheLoadedNav(array $nav): void
     {
-        foreach ($pages as $childId => $page) {
-            if (isset($page->meta->min_role)) {
-                if (!$this->userHandler->isGranted($page->meta->min_role)) {
-                    continue;
-                }
-            }
-            if (self::isDirectChild($childId, $id)) {
-                $page = $this->findChildPages($childId, $page, $pages);
-                $parentPage->children[$childId] = $page;
-            }
-        }
-
-        return $parentPage;
+        $navCache = $this->getNavCache();
+        $navCache->setNav($nav);
+        $this->navCacheRepository->set($navCache);
     }
 }
