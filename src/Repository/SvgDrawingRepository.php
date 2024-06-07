@@ -18,6 +18,19 @@ class SvgDrawingRepository extends AbstractRepository
         return null;
     }
 
+    /**
+     * @param string $entryId
+     *
+     * @return array|SvgDrawing[]
+     */
+    public function findByEntry(string $entryId): array
+    {
+        $re = '/(?<entry>.*\/)(?<file>.*\.svg)/m';
+        foreach ($this->getData() as $datum) {
+
+        }
+    }
+
     public static function getDataName(): string
     {
         return 'svg-drawing';

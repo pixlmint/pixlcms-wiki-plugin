@@ -44,4 +44,21 @@ class SvgController extends AbstractController
 
         return $this->json(['message' => 'Success']);
     }
+
+    /**
+     * GET /api/admin/svg/load-drawings
+     */
+    public function loadDrawings(RequestInterface $request, SvgDrawingRepository $svgRepository): HttpResponse
+    {
+        if (!$this->isGranted(CustomUserHelper::ROLE_EDITOR)) {
+            return $this->json(['message' => 'You are not authenticated'], 401);
+        }
+        if (!key_exists('entry', $request->getBody())) {
+            return $this->json(['message' => 'Entry argument not supplied'], HttpResponseCode::BAD_REQUEST);
+        }
+
+
+
+
+    }
 }
