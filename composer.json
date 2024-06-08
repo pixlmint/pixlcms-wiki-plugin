@@ -4,7 +4,8 @@
   "require": {
     "ext-json":  "*",
     "ext-zlib":  "*",
-    "pixlmint/pixl-cms": "*"
+    "pixlmint/pixl-cms": "*",
+    "smalot/pdfparser": "^2.10"
   },
   "autoload": {
     "psr-4": {

@@ -2,21 +2,31 @@
 
 namespace PixlMint\WikiPlugin\Helpers;
 
+use Exception;
 use Nacho\Contracts\PageManagerInterface;
+use Nacho\Helpers\AlternativeContentPageHandler;
+use Nacho\Models\PicoPage;
 use PixlMint\CMS\Helpers\Stopwatch;
 use PixlMint\WikiPlugin\Model\Index;
 use PixlMint\WikiPlugin\Repository\IndexRepository;
+use Psr\Log\LoggerInterface;
+use Smalot\PdfParser\Parser;
 
 class Indexer
 {
     private array $index = [];
     private PageManagerInterface $pageManager;
     private IndexRepository $indexRepository;
+    private AlternativeContentPageHandler $alternativeContentPageHandler;
+    private array $errorBucket;
+    private LoggerInterface $logger;
 
-    public function __construct(PageManagerInterface $pageManager, IndexRepository $indexRepository)
+    public function __construct(PageManagerInterface $pageManager, IndexRepository $indexRepository, AlternativeContentPageHandler $alternativeContentPageHandler, LoggerInterface $logger)
     {
         $this->pageManager = $pageManager;
         $this->indexRepository = $indexRepository;
+        $this->alternativeContentPageHandler = $alternativeContentPageHandler;
+        $this->logger = $logger;
     }
 
     public function indexDb(): float
@@ -24,13 +34,19 @@ class Indexer
         $pages = $this->pageManager->getPages();
         $timer = Stopwatch::startNew();
         foreach ($pages as $page) {
-            $content = strtolower($page->raw_content);
-            $title = strtolower($page->meta->title);
-
-            $this->indexString($content, $page->id, 1);
-            $this->indexString($title, $page->id, 10);
+            try {
+                $this->indexPage($page);
+            } catch (Exception $e) {
+                $this->errorBucket[] = $e;
+                $this->logger->warning(sprintf("Error in indexer: %s", $e->getMessage()));
+            }
         }
         $indexTime = $timer->stop();
+        if ($this->errorBucket) {
+            $this->logger->warning(sprintf('Indexer ran with %d errors within %ds', count($this->errorBucket), $indexTime));
+        } else {
+            $this->logger->info(sprintf('Indexer ran within %ds', $indexTime));
+        }
 
         $index = new Index($indexTime, $this->index);
         $this->indexRepository->set($index);
@@ -38,24 +54,43 @@ class Indexer
         return $indexTime;
     }
 
+    private function indexPage(PicoPage $page): void
+    {
+        $title = strtolower($page->meta->title);
+        $this->indexString($title, $page->id, 10);
+
+        if (key_exists('renderer', $page->meta->toArray()) && $page->meta->renderer === 'pdf') {
+            $this->indexPdf($page);
+        } else {
+            $this->indexString($page->raw_content, $page->id, 3);
+        }
+    }
+
+    private function indexPdf(PicoPage $page): void
+    {
+        $this->alternativeContentPageHandler->setPage($page);
+        $pdfPath = $this->alternativeContentPageHandler->getAbsoluteFilePath();
+        $parser = new Parser();
+        $pdfContent = $parser->parseFile($pdfPath);
+        $this->indexString($pdfContent->getText(), $page->id, 1);
+    }
+
     private function indexString(string $str, string $pageId, int $weight): void
     {
         $str = preg_replace("/\W+/", " ", $str);
         $words = preg_split('/\s+/', $str);
         foreach ($words as $word) {
-            if (!in_array($word, self::getStopWords())) {
+            if (!in_array($word, self::getStopWords()) && strlen($word) > 2) {
                 if (!key_exists($word, $this->index)) {
                     $this->index[$word] = [];
                 }
-                $alreadyInArray = array_filter($this->index[$word], function ($arr) use ($pageId) {
-                    return $pageId === $arr['pageId'];
-                });
-                $i = array_search($alreadyInArray, $this->index[$word]);
-                if ($i) {
-                    $this->index[$word][$i]['weight'] += $weight;
-                } else {
-                    $this->index[$word][] = ["pageId" => $pageId, "weight" => $weight];
+                foreach ($this->index[$word] as $position => $indexedPage) {
+                    if ($indexedPage['pageId'] === $pageId) {
+                        $this->index[$word][$position]['weight'] += $weight;
+                        continue 2;
+                    }
                 }
+                $this->index[$word][] = ["pageId" => $pageId, "weight" => $weight];
             }
         }
     }
