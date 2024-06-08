@@ -18,7 +18,7 @@ class Indexer
     private PageManagerInterface $pageManager;
     private IndexRepository $indexRepository;
     private AlternativeContentPageHandler $alternativeContentPageHandler;
-    private array $errorBucket;
+    private array $errorBucket = [];
     private LoggerInterface $logger;
 
     public function __construct(PageManagerInterface $pageManager, IndexRepository $indexRepository, AlternativeContentPageHandler $alternativeContentPageHandler, LoggerInterface $logger)
@@ -70,6 +70,10 @@ class Indexer
     {
         $this->alternativeContentPageHandler->setPage($page);
         $pdfPath = $this->alternativeContentPageHandler->getAbsoluteFilePath();
+        if (!is_file($pdfPath)) {
+            $this->logger->warning(sprintf('Not a PDF: %s', $pdfPath));
+            return;
+        }
         $parser = new Parser();
         $pdfContent = $parser->parseFile($pdfPath);
         $this->indexString($pdfContent->getText(), $page->id, 1);
