@@ -6,11 +6,12 @@ use Exception;
 use Nacho\Contracts\PageManagerInterface;
 use Nacho\Helpers\AlternativeContentPageHandler;
 use Nacho\Models\PicoPage;
+use Nacho\Nacho;
 use PixlMint\CMS\Helpers\Stopwatch;
 use PixlMint\WikiPlugin\Model\Index;
 use PixlMint\WikiPlugin\Repository\IndexRepository;
 use Psr\Log\LoggerInterface;
-use Smalot\PdfParser\Parser;
+use Spatie\PdfToText\Pdf;
 
 class Indexer
 {
@@ -74,9 +75,26 @@ class Indexer
             $this->logger->warning(sprintf('Not a PDF: %s', $pdfPath));
             return;
         }
-        $parser = new Parser();
-        $pdfContent = $parser->parseFile($pdfPath);
-        $this->indexString($pdfContent->getText(), $page->id, 1);
+
+        $pdfContent = $this->getPdfContent($pdfPath, $page->id, [Pdf::class, 'getText']);
+        $this->indexString($pdfContent, $page->id, 1);
+    }
+
+    private function getPdfContent(string $pdfPath, string $pageId, callable $parser): string
+    {
+        $this->logger->info('Indexing ' . $pdfPath);
+
+        if (Nacho::$container->get('debug')) {
+            $initialMemoryUsage = memory_get_usage();
+            $timer = Stopwatch::startNew();
+            $pdfContent = call_user_func($parser, $pdfPath);
+            $duration = $timer->stop();
+            $readPdfMemoryUsage = memory_get_usage() - $initialMemoryUsage;
+            $this->logger->debug(sprintf("Done indexing %s within %fs, using %d bytes", $pdfPath, $duration, $readPdfMemoryUsage));
+            return $pdfContent;
+        } else {
+            return call_user_func($parser, $pdfPath);
+        }
     }
 
     private function indexString(string $str, string $pageId, int $weight): void

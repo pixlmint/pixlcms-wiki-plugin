@@ -5,7 +5,7 @@
     "ext-json":  "*",
     "ext-zlib":  "*",
     "pixlmint/pixl-cms": "*",
-    "smalot/pdfparser": "^2.10"
+    "spatie/pdf-to-text": "^1.52"
   },
   "autoload": {
     "psr-4": {
