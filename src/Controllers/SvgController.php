@@ -5,6 +5,7 @@ namespace PixlMint\WikiPlugin\Controllers;
 use Nacho\Contracts\RequestInterface;
 use Nacho\Controllers\AbstractController;
 use Nacho\Helpers\Utils;
+use Nacho\Models\HttpMethod;
 use Nacho\Models\HttpResponse;
 use Nacho\Models\HttpResponseCode;
 use PixlMint\CMS\Helpers\CustomUserHelper;
@@ -21,7 +22,7 @@ class SvgController extends AbstractController
         if (!$this->isGranted(CustomUserHelper::ROLE_EDITOR)) {
             return $this->json(['message' => 'You are not authenticated'], 401);
         }
-        if (strtolower($request->requestMethod) !== 'post') {
+        if (!$request->isMethod(HttpMethod::POST)) {
             return $this->json(['message' => 'invalid request method', HttpResponseCode::METHOD_NOT_ALLOWED]);
         }
         if (!$request->getBody()->has('drawing') && !$request->getBody()->has('drawing')) {
