@@ -9,13 +9,9 @@ class SvgDrawingRepository extends AbstractRepository
 {
     public function findBySvgPath(string $path): ?SvgDrawing
     {
-        foreach ($this->getData() as $datum) {
-            if ($datum['svg'] === $path) {
-                return new SvgDrawing($datum['id'], $datum['svg'], $datum['data']);
-            }
-        }
-
-        return null;
+        return $this->findWithCallback(function(array $datum) use ($path) {
+            return $datum['svg'] === $path;
+        });
     }
 
     public static function getDataName(): string
@@ -26,5 +22,15 @@ class SvgDrawingRepository extends AbstractRepository
     public static function getModel(): string
     {
         return SvgDrawing::class;
+    }
+
+    private function findWithCallback(callable $identifier): ?SvgDrawing
+    {
+        foreach ($this->getData() as $id => $datum) {
+            if ($identifier($datum)) {
+                return new SvgDrawing($id, $datum['svg'], $datum['compressedData']);
+            }
+        }
+        return null;
     }
 }

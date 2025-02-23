@@ -4,7 +4,7 @@ namespace PixlMint\WikiPlugin\Hooks;
 
 use Nacho\Contracts\Hooks\PostHandleUpdate;
 use Nacho\Models\PicoPage;
-use PixlMint\WikiPlugin\Helpers\NavRenderer;
+use PixlMint\CMS\Helpers\NavRenderer;
 
 class PostHandleUpdateHook implements PostHandleUpdate
 {

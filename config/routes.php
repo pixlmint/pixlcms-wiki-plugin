@@ -20,4 +20,9 @@ return [
         'controller' => SvgController::class,
         'function' => 'storeSvgData',
     ],
+    [
+        'route' => '/api/admin/svg/load-data',
+        'controller' => SvgController::class,
+        'function' => 'loadSvgData',
+    ],
 ];
