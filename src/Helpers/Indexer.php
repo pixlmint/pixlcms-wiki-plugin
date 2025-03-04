@@ -4,29 +4,24 @@ namespace PixlMint\WikiPlugin\Helpers;
 
 use Exception;
 use Nacho\Contracts\PageManagerInterface;
-use Nacho\Helpers\AlternativeContentPageHandler;
 use Nacho\Models\PicoPage;
-use Nacho\Nacho;
 use PixlMint\CMS\Helpers\Stopwatch;
 use PixlMint\WikiPlugin\Model\Index;
 use PixlMint\WikiPlugin\Repository\IndexRepository;
 use Psr\Log\LoggerInterface;
-use Spatie\PdfToText\Pdf;
 
 class Indexer
 {
     private array $index = [];
     private PageManagerInterface $pageManager;
     private IndexRepository $indexRepository;
-    private AlternativeContentPageHandler $alternativeContentPageHandler;
     private array $errorBucket = [];
     private LoggerInterface $logger;
 
-    public function __construct(PageManagerInterface $pageManager, IndexRepository $indexRepository, AlternativeContentPageHandler $alternativeContentPageHandler, LoggerInterface $logger)
+    public function __construct(PageManagerInterface $pageManager, IndexRepository $indexRepository, LoggerInterface $logger)
     {
         $this->pageManager = $pageManager;
         $this->indexRepository = $indexRepository;
-        $this->alternativeContentPageHandler = $alternativeContentPageHandler;
         $this->logger = $logger;
     }
 
@@ -60,46 +55,12 @@ class Indexer
         $title = strtolower($page->meta->title);
         $this->indexString($title, $page->id, 10);
 
-        if (key_exists('renderer', $page->meta->toArray()) && $page->meta->renderer === 'pdf') {
-            $this->indexPdf($page);
-        } else {
-            $this->indexString($page->raw_content, $page->id, 3);
-        }
-    }
-
-    private function indexPdf(PicoPage $page): void
-    {
-        $this->alternativeContentPageHandler->setPage($page);
-        $pdfPath = $this->alternativeContentPageHandler->getAbsoluteFilePath();
-        if (!is_file($pdfPath)) {
-            $this->logger->warning(sprintf('Not a PDF: %s', $pdfPath));
-            return;
-        }
-
-        $pdfContent = $this->getPdfContent($pdfPath, $page->id, [Pdf::class, 'getText']);
-        $this->indexString($pdfContent, $page->id, 1);
-    }
-
-    private function getPdfContent(string $pdfPath, string $pageId, callable $parser): string
-    {
-        $this->logger->info('Indexing ' . $pdfPath);
-
-        if (Nacho::$container->get('debug')) {
-            $initialMemoryUsage = memory_get_usage();
-            $timer = Stopwatch::startNew();
-            $pdfContent = call_user_func($parser, $pdfPath);
-            $duration = $timer->stop();
-            $readPdfMemoryUsage = memory_get_usage() - $initialMemoryUsage;
-            $this->logger->debug(sprintf("Done indexing %s within %fs, using %d bytes", $pdfPath, $duration, $readPdfMemoryUsage));
-            return $pdfContent;
-        } else {
-            return call_user_func($parser, $pdfPath);
-        }
+        $this->indexString($page->raw_content, $page->id, 3);
     }
 
     private function indexString(string $str, string $pageId, int $weight): void
     {
-        $str = preg_replace("/\W+/", " ", $str);
+        $str = preg_replace("/\W+/", " ", strtolower($str));
         $words = preg_split('/\s+/', $str);
         foreach ($words as $word) {
             if (!in_array($word, self::getStopWords()) && strlen($word) > 2) {
